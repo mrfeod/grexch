@@ -48,26 +48,21 @@ the-secret-key — значение GREEK_BOT_SECRET
 
 ### 2. Скачайте бинарник из GitHub
 
-Прямые ссылки:
-- Стабильный релиз: [latest release](../../releases/latest)
-- Последняя сборка из `main`: [main-latest](../../releases/tag/main-latest)
-
-1. Откройте одну из ссылок выше.
-2. В блоке **Assets** скачайте архив под вашу ОС:
-- `greek-bot-ubuntu-latest.zip` (Linux)
-- `greek-bot-macos-latest.zip` (macOS)
-- `greek-bot-windows-latest.zip` (Windows)
-3. Распакуйте архив в отдельную папку.
-4. Если релиза еще нет, откройте [Build Binaries в Actions](../../actions/workflows/build-binaries.yml), запустите workflow через **Run workflow** и дождитесь завершения.
+1. Откройте [latest release](../../releases/latest).
+1. Cкачайте архив под вашу ОС:
+- [Ubuntu Linux](https://github.com/mrfeod/grexch/releases/download/main-latest/greek-bot-ubuntu-latest.zip)
+- [macOS](https://github.com/mrfeod/grexch/releases/download/main-latest/greek-bot-macos-latest.zip)
+- [Windows](https://github.com/mrfeod/grexch/releases/download/main-latest/greek-bot-windows-latest.zip)
+2. Распакуйте архив в отдельную папку.
 
 После распаковки будут:
-- бинарник (`greek-bot` или `greek-bot.exe`)
+- исполняемый файл (`dist/greek-bot` или `dist/greek-bot.exe`)
 - `settings.ini.example`
-- `.env.example`
+- README.md
 
 ### 3. Настройте `settings.ini`
 
-Скопируйте шаблон `settings.ini.example` в `settings.ini`, откройте `settings.ini` и заполните:
+Скопируйте шаблон `settings.ini.example` в `dist/settings.ini` (рядом с исполняемым файлом), откройте `settings.ini` и заполните:
 ```ini
 [bot]
 TELEGRAM_BOT_TOKEN=1234567890:AA...
