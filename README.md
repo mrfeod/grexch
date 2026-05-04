@@ -48,10 +48,11 @@ the-secret-key — значение GREEK_BOT_SECRET
 
 ### 2. Скачайте бинарник из GitHub
 
-Прямая ссылка на последнюю версию:
-[Скачать latest release](../../releases/latest)
+Прямые ссылки:
+- Стабильный релиз: [latest release](../../releases/latest)
+- Последняя сборка из `main`: [main-latest](../../releases/tag/main-latest)
 
-1. Откройте ссылку выше.
+1. Откройте одну из ссылок выше.
 2. В блоке **Assets** скачайте архив под вашу ОС:
 - `greek-bot-ubuntu-latest.zip` (Linux)
 - `greek-bot-macos-latest.zip` (macOS)

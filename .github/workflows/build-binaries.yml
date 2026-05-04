@@ -25,10 +25,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -41,7 +41,7 @@ jobs:
         run: pyinstaller --clean --onefile --name greek-bot greek.py
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: greek-bot-${{ matrix.os }}
           path: |
@@ -51,15 +51,15 @@ jobs:
             README.md
           if-no-files-found: error
 
-  release:
-    name: Publish GitHub Release
+  release_tag:
+    name: Publish Tagged Release
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
 
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: greek-bot-*
           path: release-artifacts
@@ -76,8 +76,43 @@ jobs:
           done
 
       - name: Publish release assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: release-bundles/*.zip
           overwrite_files: true
           generate_release_notes: true
+
+  release_main:
+    name: Publish Main Snapshot
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v7
+        with:
+          pattern: greek-bot-*
+          path: release-artifacts
+
+      - name: Pack artifacts
+        run: |
+          mkdir -p release-bundles
+          for dir in release-artifacts/greek-bot-*; do
+            bundle_name="$(basename "$dir").zip"
+            (
+              cd "$dir"
+              zip -r "../../release-bundles/$bundle_name" .
+            )
+          done
+
+      - name: Publish main snapshot assets
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: main-latest
+          name: main-latest
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          make_latest: false
+          files: release-bundles/*.zip
+          overwrite_files: true
