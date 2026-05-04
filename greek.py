@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import asyncio
+import configparser
 import os
 import re
 from dataclasses import dataclass
@@ -41,17 +42,66 @@ class RunTask:
 
 
 run_tasks: dict[int, RunTask] = {}
+settings: dict[str, str] = {}
+
+SETTINGS_INI_PATH = "settings.ini"
+SETTINGS_SECTION = "bot"
+
+
+def load_settings_ini(path: str = SETTINGS_INI_PATH) -> dict[str, str]:
+    if not os.path.exists(path):
+        return {}
+
+    parser = configparser.ConfigParser(interpolation=None)
+    try:
+        with open(path, encoding="utf-8") as settings_file:
+            parser.read_file(settings_file)
+    except configparser.Error as exc:
+        raise RuntimeError(f"Invalid settings file {path}: {exc}") from exc
+
+    loaded: dict[str, str] = {}
+
+    for key, value in parser.defaults().items():
+        stripped = value.strip()
+        if stripped:
+            loaded[key.upper()] = stripped
+
+    for section_name in parser.sections():
+        if section_name.lower() != SETTINGS_SECTION:
+            continue
+
+        for key, value in parser.items(section_name):
+            stripped = value.strip()
+            if stripped:
+                loaded[key.upper()] = stripped
+
+    return loaded
+
+
+def get_setting(name: str, default: str | None = None) -> str | None:
+    value = settings.get(name)
+    if value:
+        return value
+
+    env_value = os.getenv(name)
+    if env_value:
+        return env_value
+
+    return default
 
 
 def get_required_env(name: str) -> str:
-    value = os.getenv(name)
+    value = get_setting(name)
     if not value:
-        raise RuntimeError(f"Missing required environment variable: {name}")
+        raise RuntimeError(
+            f"Missing required setting: {name}. "
+            "Set it in settings.ini or in environment variables."
+        )
     return value
 
 
 def get_db_path() -> str:
-    return os.getenv("GREEK_BOT_DB", "greek_results_bot.sqlite3")
+    return get_setting("GREEK_BOT_DB", "greek_results_bot.sqlite3") or "greek_results_bot.sqlite3"
 
 
 async def init_db() -> None:
@@ -598,6 +648,8 @@ async def activation_handler(message: Message, bot: Bot) -> None:
 
 async def main() -> None:
     load_dotenv()
+    global settings
+    settings = load_settings_ini()
 
     token = get_required_env("TELEGRAM_BOT_TOKEN")
     get_required_env("GREEK_BOT_SECRET")

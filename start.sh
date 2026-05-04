@@ -5,9 +5,15 @@ VENV_DIR=".venv"
 APP="greek.py"
 PID_FILE="bot.pid"
 LOG_FILE="bot.log"
+REQUIREMENTS_FILE="requirements.txt"
 
 if [[ ! -f "$APP" ]]; then
   echo "Error: $APP not found"
+  exit 1
+fi
+
+if [[ ! -f "$REQUIREMENTS_FILE" ]]; then
+  echo "Error: $REQUIREMENTS_FILE not found"
   exit 1
 fi
 
@@ -18,12 +24,7 @@ fi
 
 echo "Installing/updating dependencies..."
 "$VENV_DIR/bin/python" -m pip install --upgrade pip
-"$VENV_DIR/bin/pip" install \
-  aiogram \
-  aiosqlite \
-  aiohttp \
-  html2text \
-  python-dotenv
+"$VENV_DIR/bin/pip" install -r "$REQUIREMENTS_FILE"
 
 if [[ -f "$PID_FILE" ]]; then
   OLD_PID="$(cat "$PID_FILE")"

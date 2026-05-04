@@ -1,4 +1,5 @@
 .env
+settings.ini
 .venv/
 __pycache__/
 *.pyc
