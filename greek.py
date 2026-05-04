@@ -385,7 +385,9 @@ async def check_all_for_chat(chat_id: int) -> list[tuple[GreekCheck, str | Excep
     if not checks:
         return []
 
-    async with aiohttp.ClientSession() as session:
+    connector = aiohttp.TCPConnector(ssl=False)
+
+    async with aiohttp.ClientSession(connector=connector) as session:
         tasks = [
             fetch_greek_exam_result(
                 session=session,
