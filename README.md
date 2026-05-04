@@ -172,7 +172,7 @@ python greek.py
 Пример:
 
 ```text
-/remove 35703-4102-SOSNIN
+/remove 54321-1234-ANDREOU
 ```
 
 ### `/remove all`
