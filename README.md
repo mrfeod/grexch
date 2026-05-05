@@ -183,3 +183,12 @@ python greek.py
 
 - При команде `/check` бот покажет ошибку запроса.
 - При фоновой проверке через `/run n` бот продолжит попытки и отправит результат, когда сайт снова ответит.
+
+# Бонус
+Однострочный bash-скрипт для получения результата в человекочитаемом виде:
+```bash
+CODE=КОД_КАНДИДАТА; SURNAME=ФАМИЛИЯ; curl -sS 'https://www.greek-language.gr/certification/results/index.html' -X POST --data-raw "inputCenterCode=35703&inputCandidateCode=${CODE}&inputCandidateSurname=${SURNAME}" | LC_ALL=C.UTF-8 perl -Mutf8 -CSDA -0777 -pe 's#<img[^>]*checkon\.png[^>]*># ✓#g;s#<img[^>]*>##g;s#</th><td><table[^>]*>#\n#g;s#</(?:h4|p|tr)>#\n#g;s#</b># #g;s#</td><td[^>]*># #g;s#<[^>]+>##g;s#^\s+|\s+$##gm;s#[ \t]{2,}# #g;s#\n+#\n#g;s#\z#\n#'
+```
+
+Нужно поменять `CODE` и `SURNAME` на свои.
+`inputCenterCode=35703` - по умолчанию введен код экзаменационного центра на Кипре, если вы сдавали экзамен в другом центре, этот код тоже нужно поменять.
