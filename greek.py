@@ -2,6 +2,7 @@
 
 import asyncio
 import configparser
+import logging
 import os
 import re
 from dataclasses import dataclass
@@ -56,6 +57,7 @@ class RunTask:
 
 run_tasks: dict[int, RunTask] = {}
 settings: dict[str, str] = {}
+logger = logging.getLogger(__name__)
 
 SETTINGS_INI_PATH = "settings.ini"
 SETTINGS_SECTION = "bot"
@@ -302,14 +304,24 @@ def now_in_athens() -> datetime:
     return datetime.now(ATHENS_TIMEZONE)
 
 
+def to_athens_datetime(dt: datetime | None) -> datetime:
+    if dt is None:
+        return now_in_athens()
+
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=ATHENS_TIMEZONE)
+
+    return dt.astimezone(ATHENS_TIMEZONE)
+
+
 def is_within_autocheck_window(dt: datetime | None = None) -> bool:
-    local_dt = dt or now_in_athens()
+    local_dt = to_athens_datetime(dt)
     local_time = local_dt.time()
     return AUTOCHECK_WINDOW_START <= local_time < AUTOCHECK_WINDOW_END
 
 
 def is_autocheck_stopped_by_date(dt: datetime | None = None) -> bool:
-    local_dt = dt or now_in_athens()
+    local_dt = to_athens_datetime(dt)
     stop_dt = datetime(
         year=local_dt.year,
         month=AUTOCHECK_STOP_MONTH,
@@ -707,7 +719,7 @@ async def activation_handler(message: Message, bot: Bot) -> None:
                 candidate_surname=check.candidate_surname,
             )
     except Exception as exc:
-        print(f"Ошибка проверки кода активации: {exc}")
+        logger.exception("Ошибка проверки кода активации")
         await message.answer("Не удалось проверить код. Попробуйте позже.")
         return
 
