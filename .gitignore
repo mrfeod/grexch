@@ -12,3 +12,7 @@ bot.log
 *.db
 
 .DS_Store
+
+build/
+dist/
+*.spec

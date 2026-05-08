@@ -5,6 +5,8 @@ import configparser
 import os
 import re
 from dataclasses import dataclass
+from datetime import datetime, time
+from zoneinfo import ZoneInfo
 
 import aiohttp
 import aiosqlite
@@ -21,6 +23,18 @@ NO_RESULT_MESSAGES = (
     "Τα αποτελέσματα δεν είναι ακόμη διαθέσιμα.",
     "Ο υποψήφιος δεν βρέθηκε.",
 )
+
+INVALID_DATA_MESSAGES = (
+    "Τα στοιχεία που δώσατε δεν είναι σωστά.",
+    "Τα στοιχεία που δώσατε δεν είναι έγκυρα.",
+    "данные неверны",
+)
+
+ATHENS_TIMEZONE = ZoneInfo("Europe/Athens")
+AUTOCHECK_WINDOW_START = time(hour=8, minute=0)
+AUTOCHECK_WINDOW_END = time(hour=20, minute=0)
+AUTOCHECK_STOP_MONTH = 9
+AUTOCHECK_STOP_DAY = 1
 
 
 @dataclass(frozen=True)
@@ -285,7 +299,28 @@ def cleanup_markdown(markdown: str) -> str:
     return "\n".join(processed_lines).strip()
 
 
-async def fetch_greek_exam_result(
+def now_in_athens() -> datetime:
+    return datetime.now(ATHENS_TIMEZONE)
+
+
+def is_within_autocheck_window(dt: datetime | None = None) -> bool:
+    local_dt = dt or now_in_athens()
+    local_time = local_dt.timetz().replace(tzinfo=None)
+    return AUTOCHECK_WINDOW_START <= local_time <= AUTOCHECK_WINDOW_END
+
+
+def is_autocheck_stopped_by_date(dt: datetime | None = None) -> bool:
+    local_dt = dt or now_in_athens()
+    stop_dt = datetime(
+        year=local_dt.year,
+        month=AUTOCHECK_STOP_MONTH,
+        day=AUTOCHECK_STOP_DAY,
+        tzinfo=ATHENS_TIMEZONE,
+    )
+    return local_dt >= stop_dt
+
+
+async def fetch_result_page_html(
     session: aiohttp.ClientSession,
     center_code: str,
     candidate_code: str,
@@ -305,7 +340,25 @@ async def fetch_greek_exam_result(
 
     async with session.post(RESULTS_URL, data=data, headers=headers, timeout=timeout) as response:
         response.raise_for_status()
-        html = await response.text()
+        return await response.text()
+
+
+def has_invalid_data_message(html: str) -> bool:
+    return any(message in html for message in INVALID_DATA_MESSAGES)
+
+
+async def fetch_greek_exam_result(
+    session: aiohttp.ClientSession,
+    center_code: str,
+    candidate_code: str,
+    candidate_surname: str,
+) -> str:
+    html = await fetch_result_page_html(
+        session=session,
+        center_code=center_code,
+        candidate_code=candidate_code,
+        candidate_surname=candidate_surname,
+    )
 
     for message in NO_RESULT_MESSAGES:
         if message in html:
@@ -443,6 +496,15 @@ async def run_loop(bot: Bot, chat_id: int, interval_minutes: int) -> None:
     try:
         while True:
             await asyncio.sleep(interval_minutes * 60)
+            local_dt = now_in_athens()
+
+            if is_autocheck_stopped_by_date(local_dt):
+                await delete_run(chat_id)
+                run_tasks.pop(chat_id, None)
+                return
+
+            if not is_within_autocheck_window(local_dt):
+                continue
 
             found_any = await send_check_results(
                 bot=bot,
@@ -637,6 +699,24 @@ async def activation_handler(message: Message, bot: Bot) -> None:
 
     if check is None:
         # На неправильные сообщения молчим.
+        return
+
+    connector = aiohttp.TCPConnector(ssl=False)
+
+    try:
+        async with aiohttp.ClientSession(connector=connector) as session:
+            html = await fetch_result_page_html(
+                session=session,
+                center_code=check.center_code,
+                candidate_code=check.candidate_code,
+                candidate_surname=check.candidate_surname,
+            )
+    except Exception as exc:
+        await message.answer(f"Не удалось проверить код: {exc}")
+        return
+
+    if has_invalid_data_message(html):
+        await message.answer("Данные неверны, код не сохранён")
         return
 
     inserted = await add_check(check)
