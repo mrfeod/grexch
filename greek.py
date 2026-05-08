@@ -27,7 +27,6 @@ NO_RESULT_MESSAGES = (
 INVALID_DATA_MESSAGES = (
     "Τα στοιχεία που δώσατε δεν είναι σωστά.",
     "Τα στοιχεία που δώσατε δεν είναι έγκυρα.",
-    "данные неверны",
 )
 
 ATHENS_TIMEZONE = ZoneInfo("Europe/Athens")
@@ -305,8 +304,8 @@ def now_in_athens() -> datetime:
 
 def is_within_autocheck_window(dt: datetime | None = None) -> bool:
     local_dt = dt or now_in_athens()
-    local_time = local_dt.timetz().replace(tzinfo=None)
-    return AUTOCHECK_WINDOW_START <= local_time <= AUTOCHECK_WINDOW_END
+    local_time = local_dt.time()
+    return AUTOCHECK_WINDOW_START <= local_time < AUTOCHECK_WINDOW_END
 
 
 def is_autocheck_stopped_by_date(dt: datetime | None = None) -> bool:
@@ -438,9 +437,7 @@ async def check_all_for_chat(chat_id: int) -> list[tuple[GreekCheck, str | Excep
     if not checks:
         return []
 
-    connector = aiohttp.TCPConnector(ssl=False)
-
-    async with aiohttp.ClientSession(connector=connector) as session:
+    async with aiohttp.ClientSession() as session:
         tasks = [
             fetch_greek_exam_result(
                 session=session,
@@ -701,10 +698,8 @@ async def activation_handler(message: Message, bot: Bot) -> None:
         # На неправильные сообщения молчим.
         return
 
-    connector = aiohttp.TCPConnector(ssl=False)
-
     try:
-        async with aiohttp.ClientSession(connector=connector) as session:
+        async with aiohttp.ClientSession() as session:
             html = await fetch_result_page_html(
                 session=session,
                 center_code=check.center_code,
@@ -712,7 +707,8 @@ async def activation_handler(message: Message, bot: Bot) -> None:
                 candidate_surname=check.candidate_surname,
             )
     except Exception as exc:
-        await message.answer(f"Не удалось проверить код: {exc}")
+        print(f"Ошибка проверки кода активации: {exc}")
+        await message.answer("Не удалось проверить код. Попробуйте позже.")
         return
 
     if has_invalid_data_message(html):
