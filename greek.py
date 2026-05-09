@@ -725,7 +725,7 @@ async def activation_handler(message: Message, bot: Bot) -> None:
         await message.answer("Не удалось проверить код. Попробуйте позже.")
         return
 
-    if has_invalid_data_message(format_result_html(html)):
+    if has_invalid_data_message(html):
         await message.answer("Данные неверны, код не сохранён")
         return
 
