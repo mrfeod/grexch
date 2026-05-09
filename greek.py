@@ -22,12 +22,10 @@ RESULTS_URL = "https://www.greek-language.gr/certification/results/index.html"
 
 NO_RESULT_MESSAGES = (
     "Τα αποτελέσματα δεν είναι ακόμη διαθέσιμα.",
-    "Ο υποψήφιος δεν βρέθηκε.",
 )
 
 INVALID_DATA_MESSAGES = (
-    "Τα στοιχεία που δώσατε δεν είναι σωστά.",
-    "Τα στοιχεία που δώσατε δεν είναι έγκυρα.",
+    "Ο υποψήφιος δεν βρέθηκε.",
 )
 
 ATHENS_TIMEZONE = ZoneInfo("Europe/Athens")
