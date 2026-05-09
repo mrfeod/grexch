@@ -300,6 +300,20 @@ def cleanup_markdown(markdown: str) -> str:
     return "\n".join(processed_lines).strip()
 
 
+def format_result_html(html: str) -> str:
+    html = html.replace('<img src="/certification/img/checkon.png">', "✓")
+    html = html.replace('<img src="/certification/img/check.png">', "")
+
+    converter = html2text.HTML2Text()
+    converter.body_width = 0
+    converter.ignore_links = True
+    converter.ignore_images = True
+    converter.unicode_snob = True
+
+    markdown = converter.handle(html)
+    return cleanup_markdown(markdown)
+
+
 def now_in_athens() -> datetime:
     return datetime.now(ATHENS_TIMEZONE)
 
@@ -354,8 +368,8 @@ async def fetch_result_page_html(
         return await response.text()
 
 
-def has_invalid_data_message(html: str) -> bool:
-    return any(message in html for message in INVALID_DATA_MESSAGES)
+def has_invalid_data_message(text: str) -> bool:
+    return any(message in text for message in INVALID_DATA_MESSAGES)
 
 
 async def fetch_greek_exam_result(
@@ -375,17 +389,7 @@ async def fetch_greek_exam_result(
         if message in html:
             return ""
 
-    html = html.replace('<img src="/certification/img/checkon.png">', "✓")
-    html = html.replace('<img src="/certification/img/check.png">', "")
-
-    converter = html2text.HTML2Text()
-    converter.body_width = 0
-    converter.ignore_links = True
-    converter.ignore_images = True
-    converter.unicode_snob = True
-
-    markdown = converter.handle(html)
-    return cleanup_markdown(markdown)
+    return format_result_html(html)
 
 
 def parse_activation_message(chat_id: int, text: str) -> GreekCheck | None:
@@ -723,7 +727,7 @@ async def activation_handler(message: Message, bot: Bot) -> None:
         await message.answer("Не удалось проверить код. Попробуйте позже.")
         return
 
-    if has_invalid_data_message(html):
+    if has_invalid_data_message(format_result_html(html)):
         await message.answer("Данные неверны, код не сохранён")
         return
 
