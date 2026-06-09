@@ -185,6 +185,12 @@ python greek.py
 - При фоновой проверке через `/run n` бот продолжит попытки и отправит результат, когда сайт снова ответит.
 
 # Бонус
+ChatGPT для проверки результатов: https://chatgpt.com/g/g-69fdbaa828108191be1aa3402710020e-greek-exam-results
+
+# Бонус 2
+Команда mac/ios для проверки результатов: https://www.icloud.com/shortcuts/aae9d21f1bfb44a7bfe784c48d767da7
+
+# Бонус 3
 Однострочный bash-скрипт для получения результата в человекочитаемом виде:
 ```bash
 CODE=КОД_КАНДИДАТА; SURNAME=ФАМИЛИЯ; curl -sS 'https://www.greek-language.gr/certification/results/index.html' -X POST --data-raw "inputCenterCode=35703&inputCandidateCode=${CODE}&inputCandidateSurname=${SURNAME}" | LC_ALL=C.UTF-8 perl -Mutf8 -CSDA -0777 -pe 's#<img[^>]*checkon\.png[^>]*># ✓#g;s#<img[^>]*>##g;s#</th><td><table[^>]*>#\n#g;s#</(?:h4|p|tr)>#\n#g;s#</b># #g;s#</td><td[^>]*># #g;s#<[^>]+>##g;s#^\s+|\s+$##gm;s#[ \t]{2,}# #g;s#\n+#\n#g;s#\z#\n#'
