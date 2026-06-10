@@ -188,7 +188,9 @@ python greek.py
 ChatGPT для проверки результатов: https://chatgpt.com/g/g-69fdbaa828108191be1aa3402710020e-greek-exam-results
 
 # Бонус 2
-Команда mac/ios для проверки результатов: https://www.icloud.com/shortcuts/aae9d21f1bfb44a7bfe784c48d767da7
+Команда mac/ios для проверки результатов: https://www.icloud.com/shortcuts/0874759a39b84e64b21b2e601a773769
+
+https://github.com/user-attachments/assets/13922b41-d7be-41df-8fe3-be1ecbf71e04
 
 # Бонус 3
 Однострочный bash-скрипт для получения результата в человекочитаемом виде:
