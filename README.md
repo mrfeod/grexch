@@ -200,3 +200,49 @@ CODE=КОД_КАНДИДАТА; SURNAME=ФАМИЛИЯ; curl -sS 'https://www.gr
 
 Нужно поменять `CODE` и `SURNAME` на свои.
 `inputCenterCode=35703` - по умолчанию введен код экзаменационного центра на Кипре, если вы сдавали экзамен в другом центре, этот код тоже нужно поменять.
+
+## Cloudflare Worker
+
+В каталоге [`worker`](worker) находится GET endpoint с той же проверкой и человекочитаемым текстовым ответом.
+
+Параметры запроса:
+
+- `center` — код экзаменационного центра;
+- `code` — код кандидата;
+- `surname` — фамилия кандидата.
+
+Пример после развертывания:
+
+```bash
+curl -G 'https://greek-results.<ваш-subdomain>.workers.dev/' \
+  --data-urlencode 'center=35703' \
+  --data-urlencode 'code=1234' \
+  --data-urlencode 'surname=ANDREOU'
+```
+
+При найденном результате endpoint возвращает `text/plain`:
+
+```text
+Проверка: 35703-1234-ANDREOU
+
+<отформатированный результат>
+```
+
+### Развертывание
+
+Требуются Node.js 20+, npm и аккаунт Cloudflare.
+
+```bash
+cd worker
+npm install
+npx wrangler login
+./deploy.sh
+```
+
+Локальный запуск:
+
+```bash
+cd worker
+npm install
+npm run dev
+```
